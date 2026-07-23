@@ -12,16 +12,19 @@ class Experience(CommonModel):
     starts_at = models.TimeField()
     end = models.TimeField()
     description = models.TextField()
-    contents = models.ManyToManyField("experiences.Contents",)
+    contents = models.ManyToManyField("experiences.Content",)
+    category = models.ForeignKey(
+        "categories.Category", null=True, blank=True, on_delete=models.SET_NULL,
+    ) #models.CASCADE로 설정시, category를 지우면 연달아서 다른 내용도 지워짐
 
     def __str__(self) -> str:
         return self.name
 
 
-class Contents(CommonModel):
+class Content(CommonModel):
 
     name = models.CharField(max_length=100,)
-    details = models.CharField(max_length=200,blank=True, null=True, default="",)
+    details = models.CharField(max_length=200, blank=True, null=True, default="",)
     explanation = models.TextField(blank=True, default="",)
 
     def __str__(self) -> str:
