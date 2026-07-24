@@ -5,8 +5,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 # Create your models here.
 class Review(CommonModel):
-    user = models.ForeignKey("users.User", on_delete=models.CASCADE,)
-    room = models.ForeignKey("rooms.Room", null=True, blank=True, on_delete=models.SET_NULL,)
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="reviews",)
+    room = models.ForeignKey("rooms.Room", null=True, blank=True, on_delete=models.SET_NULL, related_name="reviews",)
     experience = models.ForeignKey("experiences.Experience", null=True, blank=True, on_delete=models.CASCADE,)
     payload = models.TextField()
     rating = models.PositiveIntegerField(
