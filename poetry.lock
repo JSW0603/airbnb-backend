@@ -63,6 +63,21 @@ argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
+name = "djangorestframework"
+version = "3.17.1"
+description = "Web APIs for Django, made easy."
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "djangorestframework-3.17.1-py3-none-any.whl", hash = "sha256:c3c74dd3e83a5a3efc37b3c18d92bd6f86a6791c7b7d4dff62bb068500e76457"},
+    {file = "djangorestframework-3.17.1.tar.gz", hash = "sha256:a6def5f447fe78ff853bff1d47a3c59bf38f5434b031780b351b0c73a62db1a5"},
+]
+
+[package.dependencies]
+django = ">=4.2"
+
+[[package]]
 name = "pillow"
 version = "12.3.0"
 description = "Python Imaging Library (fork)"
@@ -223,4 +238,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10"
-content-hash = "126f3372862af4dfd3f733ac7731975e76dd9c0d457959c3b5be0a38142586f6"
+content-hash = "41ad74bdb0909f0601329c5b11d30b01b499a59aac71162f2128c52fb3cb2535"
