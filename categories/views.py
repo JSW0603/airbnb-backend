@@ -1,5 +1,6 @@
 from rest_framework.decorators import api_view #rest_framework 로딩에 문제 발생 -> pylance에서 찾지못함 -> python 인터프리터의 로딩위치 문제
 from rest_framework.response import Response #Python: Select Interpreter 를 통해서 위치 변경
+from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.exceptions import NotFound
 from .models import Category
 from .serializers import CategorySerializer
@@ -19,7 +20,7 @@ def categories(request):
         else:
             return Response(serializer.errors)
 
-@api_view(["GET", "PUT"])
+@api_view(["GET", "PUT", "DELETE"])
 def category(request, pk):
     try:
         category = Category.objects.get(pk=pk)
@@ -36,4 +37,6 @@ def category(request, pk):
             return Response(CategorySerializer(updated_category).data)
         else:
             return Response(serializer.errors)
-
+    elif request.method == "DELETE":
+        category.delete()
+        return Response(status=HTTP_204_NO_CONTENT)
