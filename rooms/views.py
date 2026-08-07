@@ -11,6 +11,7 @@ from rest_framework.exceptions import NotFound, NotAuthenticated, ParseError, Pe
 from rest_framework.status import HTTP_204_NO_CONTENT
 from reviews.serializers import ReviewSerializer
 from medias.serializers import PhotoSerializer
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 # Create your views here.
 class Amenities(APIView):
@@ -54,41 +55,44 @@ class AmenityDetail(APIView):
         return Response(status=HTTP_204_NO_CONTENT)
 
 class Rooms(APIView):
+
+    permission_classes = [IsAuthenticatedOrReadOnly] #IsAuthenticatedOrReadOnly는 인증된 사용자에게는 읽기/쓰기 권한을 부여하고, 인증되지 않은 사용자에게는 읽기 권한만 부여하는 권한 클래스
+
     def get(self, request):
         all_rooms = Room.objects.all()
         serializer = RoomListSerializer(all_rooms, many=True, context={"request": request})
         return Response(serializer.data)
 
     def post(self, request):
-        if request.user.is_authenticated:  #허용된 사용자만 방을 생성할 수 있도록 설정
-            serializer = RoomDetailSerializer(data=request.data)
-            if serializer.is_valid():
-                category_pk = request.data.get("category")
-                if not category_pk:
-                    raise ParseError("Category is required.")
-                try: 
-                    category = Category.objects.get(pk=category_pk)
-                    if category.kind == Category.CategoryKindChoices.EXPERIENCES:
-                        raise ParseError("The category kind should be 'rooms'.")
-                except Category.DoesNotExist:
-                    raise ParseError("Category not found.")
-                try:
-                    with transaction.atomic(): #transaction.atomic()을 사용하여 데이터베이스 트랜잭션을 시작. 이 블록 내에서 발생하는 모든 데이터베이스 작업은 하나의 트랜잭션으로 묶임. 만약 블록 내에서 예외가 발생하면, 모든 변경 사항이 롤백되어 데이터베이스가 이전 상태로 되돌아감.
-                        room = serializer.save(owner=request.user, category=category)  #request.user를 통해 현재 로그인한 사용자를 가져와서 방의 owner로 설정. 
-                        amenities = request.data.get("amenities")                      #해당 owner 정보를 포함한 RoomDetailSerializer를 사용하여 방의 상세 정보를 직렬화
-                        for amenity_pk in amenities: #amenity에 없는 정보를 입력시, 오류가 발생하게 설정. (예외처리)
-                            amenity = Amenity.objects.get(pk=amenity_pk)
-                            room.amenities.add(amenity)  #room 객체에 amenity를 추가
-                        serializer = RoomDetailSerializer(room) #RoomDetailSerializer를 사용하여 방의 상세 정보를 직렬화
-                        return Response(serializer.data) #직렬화된 데이터를 응답으로 반환
-                except Exception:
-                    raise ParseError("Amenity not found.")
-            else:
-                return Response(serializer.errors)
+        serializer = RoomDetailSerializer(data=request.data)
+        if serializer.is_valid():
+            category_pk = request.data.get("category")
+            if not category_pk:
+                raise ParseError("Category is required.")
+            try: 
+                category = Category.objects.get(pk=category_pk)
+                if category.kind == Category.CategoryKindChoices.EXPERIENCES:
+                    raise ParseError("The category kind should be 'rooms'.")
+            except Category.DoesNotExist:
+                raise ParseError("Category not found.")
+            try:
+                with transaction.atomic(): #transaction.atomic()을 사용하여 데이터베이스 트랜잭션을 시작. 이 블록 내에서 발생하는 모든 데이터베이스 작업은 하나의 트랜잭션으로 묶임. 만약 블록 내에서 예외가 발생하면, 모든 변경 사항이 롤백되어 데이터베이스가 이전 상태로 되돌아감.
+                    room = serializer.save(owner=request.user, category=category)  #request.user를 통해 현재 로그인한 사용자를 가져와서 방의 owner로 설정. 
+                    amenities = request.data.get("amenities")                      #해당 owner 정보를 포함한 RoomDetailSerializer를 사용하여 방의 상세 정보를 직렬화
+                    for amenity_pk in amenities: #amenity에 없는 정보를 입력시, 오류가 발생하게 설정. (예외처리)
+                        amenity = Amenity.objects.get(pk=amenity_pk)
+                        room.amenities.add(amenity)  #room 객체에 amenity를 추가
+                    serializer = RoomDetailSerializer(room) #RoomDetailSerializer를 사용하여 방의 상세 정보를 직렬화
+                    return Response(serializer.data) #직렬화된 데이터를 응답으로 반환
+            except Exception:
+                raise ParseError("Amenity not found.")
         else:
-            raise NotAuthenticated
+            return Response(serializer.errors)
 
 class RoomDetail(APIView):
+
+    permission_classes = [IsAuthenticatedOrReadOnly] #IsAuthenticatedOrReadOnly는 인증된 사용자에게는 읽기/쓰기 권한을 부여하고, 인증되지 않은 사용자에게는 읽기 권한만 부여하는 권한 클래스
+
     def get_object(self, pk):
         try:
             return Room.objects.get(pk=pk)
@@ -100,10 +104,13 @@ class RoomDetail(APIView):
         serializer = RoomDetailSerializer(room, context={"request": request})
         return Response(serializer.data)
 
+    def put(self, request, pk):
+        room = self.get_object(pk)
+        if room.owner != request.user:
+            raise PermissionDenied
+
     def delete(self, request, pk):
         room = self.get_object(pk)
-        if not room.owner.is_authenticated:
-            raise NotAuthenticated
         if room.owner != request.user:
             raise PermissionDenied
         room.delete()
@@ -131,6 +138,9 @@ class RoomReviews(APIView):
         return Response(serializer.data)
 
 class RoomPhotos(APIView):
+
+    permission_classes = [IsAuthenticatedOrReadOnly] #IsAuthenticatedOrReadOnly는 인증된 사용자에게는 읽기/쓰기 권한을 부여하고, 인증되지 않은 사용자에게는 읽기 권한만 부여하는 권한 클래스
+
     def get_object(self, pk):
         try:
             return Room.objects.get(pk=pk)
@@ -139,8 +149,6 @@ class RoomPhotos(APIView):
 
     def post(self, request, pk):
         room = self.get_object(pk)
-        if not request.user.is_authenticated:
-            raise NotAuthenticated
         if request.user != room.owner:
             raise PermissionDenied
         serializer = PhotoSerializer(data=request.data)
