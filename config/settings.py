@@ -137,3 +137,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 #AUTH
 AUTH_USER_MODEL = "users.User"
+
+MEDIA_ROOT = "uploads" #MEDIA_ROOT는 업로드된 파일이 저장될 디렉토리 경로를 지정하는 설정. 여기서는 프로젝트 루트 디렉토리 내의 uploads 폴더를 지정
+
+MEDIA_URL = "user-uploads/" #MEDIA_URL은 업로드된 파일에 접근할 수 있는 URL 경로를 지정하는 설정. 여기서는 /user-uploads/ 경로를 지정
+
+PAGE_SIZE = 3 #PAGE_SIZE는 한 페이지에 표시할 항목 수를 지정하는 설정. 여기서는 한 페이지에 3개의 항목을 표시하도록 설정
