@@ -10,6 +10,7 @@ from django.db import transaction
 from rest_framework.exceptions import NotFound, NotAuthenticated, ParseError, PermissionDenied
 from rest_framework.status import HTTP_204_NO_CONTENT
 from reviews.serializers import ReviewSerializer
+from medias.serializers import PhotoSerializer
 
 # Create your views here.
 class Amenities(APIView):
@@ -138,10 +139,16 @@ class RoomPhotos(APIView):
 
     def post(self, request, pk):
         room = self.get_object(pk)
-        if not room.owner.is_authenticated:
+        if not request.user.is_authenticated:
             raise NotAuthenticated
-        if room.owner != request.user:
+        if request.user != room.owner:
             raise PermissionDenied
+        serializer = PhotoSerializer(data=request.data)
+        if serializer.is_valid():
+            photo = serializer.save(room=room)
+            return Response(PhotoSerializer(photo).data)
+        else:
+            return Response(serializer.errors)
         # Handle photo upload logic here
         return Response({"message": "Photo uploaded successfully."})
 
