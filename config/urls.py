@@ -31,4 +31,5 @@ urlpatterns = [
     path("api/categories/", include("categories.urls")),
     path("api/experiences/", include("experiences.urls")),
     path("api/medias/", include("medias.urls")),
+    path("api/wishlists/", include("wishlists.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

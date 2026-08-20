@@ -3,6 +3,8 @@ from .models import Amenity, Room
 from users.serializer import TinyUserSerializer
 from reviews.serializers import ReviewSerializer
 from categories.serializers import CategorySerializer
+from medias.serializers import PhotoSerializer
+from wishlists.models import Wishlists
 
 """
 class RoomSerializer(ModelSerializer):
@@ -27,7 +29,9 @@ class RoomDetailSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     rating = serializers.SerializerMethodField() #RoomDetailSerializer에 rating 필드를 추가하고, 해당 필드의 값을 get_rating 메서드를 통해 계산하도록 설정
     is_owner = serializers.SerializerMethodField() #RoomDetailSerializer에 is_owner 필드를 추가하고, 해당 필드의 값을 get_is_owner 메서드를 통해 계산하도록 설정
+    is_liked = serializers.SerializerMethodField()
     reviews = ReviewSerializer(read_only=True, many=True)
+    photos = PhotoSerializer(read_only=True, many=True)
 
     class Meta:
         model = Room
@@ -40,12 +44,23 @@ class RoomDetailSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         return room.owner == request.user
 
+    def get_is_liked(self, room):
+        request = self.context.get('request')
+
+        if not request.user.is_authenticated:
+            return False
+        
+        return Wishlists.objects.filter(
+            user=request.user, 
+            rooms__pk=room.pk
+        ).exists()
 
 
 class RoomListSerializer(serializers.ModelSerializer):
 
     rating = serializers.SerializerMethodField() #RoomListSerializer에 rating 필드를 추가하고, 해당 필드의 값을 get_rating 메서드를 통해 계산하도록 설정
     is_owner = serializers.SerializerMethodField() #RoomListSerializer에 is_owner 필드를 추가하고, 해당 필드의 값을 get_is_owner 메서드를 통해 계산하도록 설정
+    photos = PhotoSerializer(read_only=True, many=True)
 
     class Meta:
         model = Room
@@ -58,6 +73,7 @@ class RoomListSerializer(serializers.ModelSerializer):
             "type",
             "rating",
             "is_owner",
+            "photos",
         )
 
     def get_rating(self, room):

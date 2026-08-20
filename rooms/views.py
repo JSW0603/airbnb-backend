@@ -1,5 +1,7 @@
 from django.shortcuts import render
+from django.utils import timezone
 from django.conf import settings
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.http import HttpResponse
 from .models import Room, Amenity
 from categories.models import Category
@@ -11,7 +13,9 @@ from rest_framework.exceptions import NotFound, NotAuthenticated, ParseError, Pe
 from rest_framework.status import HTTP_204_NO_CONTENT
 from reviews.serializers import ReviewSerializer
 from medias.serializers import PhotoSerializer
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from bookings.models import Booking
+from bookings.serializers import PublicBookingSerializer
+
 
 # Create your views here.
 class Amenities(APIView):
@@ -118,6 +122,8 @@ class RoomDetail(APIView):
     
 class RoomReviews(APIView):
 
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get_object(self, pk):
         try:
             return Room.objects.get(pk=pk)
@@ -136,6 +142,14 @@ class RoomReviews(APIView):
         room=self.get_object(pk)
         serializer = ReviewSerializer(room.reviews.all()[start:end], many=True)
         return Response(serializer.data)
+
+    def post(self, request, pk):
+        serializer = ReviewSerializer(data=request.data)
+        if serializer.is_valid():
+            review = serializer.save(user=request.user, room=self.get_object(pk))
+            serializer = ReviewSerializer(review)
+            return Response(serializer.data)
+
 
 class RoomPhotos(APIView):
 
@@ -159,6 +173,24 @@ class RoomPhotos(APIView):
             return Response(serializer.errors)
         # Handle photo upload logic here
         return Response({"message": "Photo uploaded successfully."})
+
+class RoomBookings(APIView):
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_object(self, pk):
+        try:
+            return Room.objects.get(pk=pk)
+        except:
+            raise NotFound
+
+    def get(self, request, pk):
+        room = self.get_object(pk)
+        now = timezone.lcoaltime(timezone.now()).date()
+        bookings = Booking.objects.filter(room=room, kind=Booking.BookingChoices.ROOM,check_in__gt=now)
+        serializer = PublicBookingSerializer(bookings, many=True)
+        return Response(serializer.data)
+
 
 
 """
