@@ -34,7 +34,7 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=140, default="",)
     last_name = models.CharField(max_length=140, default="",)
     name = models.CharField(max_length=140, default="",)
-    profile_picture = models.ImageField(blank=True) #blank=True means that the field is optional
+    profile_picture = models.URLField(blank=True) #blank=True means that the field is optional
     is_host = models.BooleanField(default=False,)
     gender = models.CharField(max_length=10, choices=GenderChoices.choices,) #choices=GenderChoices.choices means that the field can only take values from the Gender
     language = models.CharField(max_length=2, choices=LanguageChoices.choices,)
