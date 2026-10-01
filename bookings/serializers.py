@@ -34,6 +34,26 @@ class CreateRoomBookingSerializer(serializers.ModelSerializer):
             )
         return data
 
+class CreateExperienceBookingSerializer(serializers.ModelSerializer):
+
+    experience_time = serializers.DateTimeField()
+
+    class Meta:
+        model = Booking
+        fields = (
+            "experience_time",
+            "guests",
+        )
+
+    def validate_experience_time(self, value):
+        now = timezone.localtime(timezone.now())
+        if now > value:
+            raise serializers.ValidationError("Experience time cannot be in the past.")
+
+        experience = self.context.get("experience")
+        if experience.start != value.time():
+            raise serializers.ValidationError("Invalid time")
+        return value
 
 class PublicBookingSerializer(serializers.ModelSerializer):
 
