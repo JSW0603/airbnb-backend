@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.exceptions import ParseError, NotFound
 from rest_framework.permissions import IsAuthenticated
 from users.models import User
-from . import serializer
+from .serializer import PrivateUserSerializer
 
 # Create your views here.
 class Me(APIView):
@@ -13,17 +13,17 @@ class Me(APIView):
 
     def get(self, request):
         user = request.user
-        serializer_private = serializer.PrivateUserSerializer(user)
+        serializer_private = PrivateUserSerializer(user)
         return Response(serializer_private.data)
 
     def put(self, request):
         user = request.user
-        serializer_private = serializer.PrivateUserSerializer(
+        serializer_private = PrivateUserSerializer(
             user, data=request.data, partial=True,
         )
         if serializer_private.is_valid():
             user = serializer_private.save()
-            serializer_private = serializer.PrivateUserSerializer(user)
+            serializer_private = PrivateUserSerializer(user)
             return Response(serializer_private.data)
         else:
             return Response(serializer_private.errors)
@@ -34,12 +34,12 @@ class Users(APIView):
         password = request.data.get("password")
         if not password:
             raise ParseError("Password is required.")
-        serializer_User = serializer.PrivateUserSerializer(data=request.data)
+        serializer_User = PrivateUserSerializer(data=request.data)
         if serializer_User.is_valid():
             user = serializer_User.save()
             user.set_password(password)
             user.save()
-            serializer_User = serializer.PrivateUserSerializer(user)
+            serializer_User = PrivateUserSerializer(user)
             return Response(serializer_User.data)
         else:
             return Response(serializer_User.errors)
@@ -50,7 +50,7 @@ class PublicUser(APIView):
             user = User.objects.get(username=username)
         except User.DoesNotExist:
             raise NotFound("User not found.")
-        serializer = serializer.PrivateUserSerializer(user)
+        serializer = PrivateUserSerializer(user)
         return Response(serializer.data)
 
 class ChangePassword(APIView):
