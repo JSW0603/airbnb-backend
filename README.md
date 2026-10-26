@@ -64,6 +64,11 @@ python manage.py runserver
 
 Then open http://127.0.0.1:8000/admin/ or try the API at http://127.0.0.1:8000/api/v1/.
 
+## Testing
+
+```bash
+poetry run pytest experiences/ -v
+
 ## API Endpoints
 
 | Method | Endpoint | Description |
@@ -78,7 +83,7 @@ Then open http://127.0.0.1:8000/admin/ or try the API at http://127.0.0.1:8000/a
 
 ## Roadmap
 
-- [ ] pytest test coverage for users API
+- [X] pytest test coverage for users API
 - [ ] JWT authentication (djangorestframework-simplejwt)
 - [ ] PostgreSQL + Docker setup
 - [ ] API documentation (drf-spectacular)
