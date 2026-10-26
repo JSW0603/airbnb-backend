@@ -50,7 +50,7 @@ class ContentDetail(APIView):
 
     def delete(self, request, pk):
         content = self.get_object(pk)
-        content.delete
+        content.delete()
         return Response(status=HTTP_204_NO_CONTENT)
 
 class Experiences(APIView):
@@ -59,7 +59,7 @@ class Experiences(APIView):
 
     def get(self, request):
         all_experiences = Experience.objects.all()
-        serializer = ExperienceSerializer(all_experiences, many=True)
+        serializer = ExperienceSerializer(all_experiences, many=True, context={"request": request})
         return Response(serializer.data)
 
     def post(self, request):
@@ -70,7 +70,7 @@ class Experiences(APIView):
                 raise ParseError("Category is required.")
             try:
                 category = Category.objects.get(pk=category_pk)
-                if category.kind != Category.CategoryKindChoices.EXPERIENCE:
+                if category.kind != Category.CategoryKindChoices.EXPERIENCES:
                     raise ParseError("The category kind should be 'experience'.")
             except Category.DoesNotExist:
                 raise ParseError("Category not found.")
@@ -82,7 +82,7 @@ class Experiences(APIView):
                         content_obj = Content.objects.get(pk=content)
                         experience.contents.add(content_obj)
                     serializer = ExperienceSerializer(experience)
-                    return Response(ExperienceDetailSerializer(experience).data)
+                    return Response(ExperienceDetailSerializer(experience, context={"request": request}).data)
             except Exception:
                 raise ParseError("Content not found.")
         else:
@@ -106,7 +106,7 @@ class ExperienceDetail(APIView):
         experience = self.get_object(pk)
         if experience.host != request.user:
             raise PermissionDenied
-        serializer = ExperienceDetailSerializer(experience, data=request.data, partial=True)
+        serializer = ExperienceDetailSerializer(experience, context={"request": request}, data=request.data, partial=True)
         if serializer.is_valid():
             category_pk = request.data.get("category")
             if not category_pk:
@@ -131,9 +131,9 @@ class ExperienceDetail(APIView):
 
             updated_experience = serializer.save(
                 category=category, contents=contents)
-            return Response(ExperienceDetailSerializer(updated_experience).data)
+            return Response(ExperienceDetailSerializer(updated_experience, context={"request": request}).data)
         else:
-            raise Response(serializer.errors)
+            return Response(serializer.errors)
             
 
     def delete(self, request, pk):

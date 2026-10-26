@@ -13,9 +13,9 @@ class ContentSerializer(ModelSerializer):
 
 class ExperienceSerializer(ModelSerializer):
 
-    is_host = TinyUserSerializer(read_only=True)
+    is_host = serializers.SerializerMethodField()
 
-    photos = PhotoSerializer(read_only=True, many=True)
+    photos = PhotoSerializer(source='photo_set', read_only=True, many=True)
 
     class Meta:
         model = Experience
@@ -37,7 +37,8 @@ class ExperienceDetailSerializer(ModelSerializer):
     host = TinyUserSerializer(read_only=True)
     category = CategorySerializer(read_only=True)
     is_host = serializers.SerializerMethodField()
-    photos = PhotoSerializer(read_only=True, many=True)
+    is_liked = serializers.SerializerMethodField()
+    photos = PhotoSerializer(source='photo_set', read_only=True, many=True)
 
     class Meta:
         model = Experience
@@ -50,5 +51,7 @@ class ExperienceDetailSerializer(ModelSerializer):
         return False
 
     def get_is_liked(self, experience):
-        request = self.context.get["request"]
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return False
         return Wishlists.objects.filter(user=request.user, experiences=experience).exists()
