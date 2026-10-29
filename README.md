@@ -85,7 +85,8 @@ poetry run pytest experiences/ -v
 ## Roadmap
 
 - [X] pytest test coverage for users API
-- [ ] JWT authentication (djangorestframework-simplejwt)
+- [X] JWT authentication (custom, PyJWT encode/decode)
+- [ ] JWT authentication with djangorestframework-simplejwt
 - [ ] PostgreSQL + Docker setup
 - [ ] API documentation (drf-spectacular)
 
