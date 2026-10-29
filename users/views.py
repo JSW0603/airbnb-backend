@@ -110,4 +110,4 @@ class JWTLogIn(APIView):
             )
             return Response({"token": token})
         else:
-            return Response({"error": "Invalid credentials."})
+            return Response({"error": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST,)
