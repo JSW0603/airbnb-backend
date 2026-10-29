@@ -68,6 +68,7 @@ Then open http://127.0.0.1:8000/admin/ or try the API at http://127.0.0.1:8000/a
 
 ```bash
 poetry run pytest experiences/ -v
+```
 
 ## API Endpoints
 
