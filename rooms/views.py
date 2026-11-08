@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db import transaction
 from rest_framework.exceptions import NotFound, ParseError, PermissionDenied
-from rest_framework.status import HTTP_204_NO_CONTENT
+from rest_framework.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
 from reviews.serializers import ReviewSerializer
 from medias.serializers import PhotoSerializer
 from bookings.models import Booking
@@ -20,24 +20,24 @@ from bookings.serializers import PublicBookingSerializer, CreateRoomBookingSeria
 # Create your views here.
 class Amenities(APIView):
     def get(self, request):
-        all_amenities = Amenity.objects.all()
-        serializer = AmenitySerializer(all_amenities, many=True)
+        all_amenities = Amenity.objects.all() # 전체 객체 조회
+        serializer = AmenitySerializer(all_amenities, many=True) # 여러객체를 serializer에 전달
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = AmenitySerializer(data=request.data)
-        if serializer.is_valid():
-            amenity = serializer.save()
+        serializer = AmenitySerializer(data=request.data) # 요청 데이터를 검증할 준비
+        if serializer.is_valid(): # 데이터 유효성 검사
+            amenity = serializer.save() # 데이터 베이스에 저장
             return Response(AmenitySerializer(amenity).data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST) # 유효성 검사 실패시, 에러 메시지와 함께 400 상태코드 반환
 
 class AmenityDetail(APIView):
-    def get_object(self, pk):
+    def get_object(self, pk): # pk로 특정 객체 검색
         try:
-            return Amenity.objects.get(pk=pk)
-        except Amenity.DoesNotExist:
-            raise NotFound
+            return Amenity.objects.get(pk=pk) # 조건에 맞는 객체 반환
+        except Amenity.DoesNotExist: # 객체가 발생하지 않을 경우, NotFound 예외 발생
+            raise NotFound # HTTP 404 상태 코드 반환
 
     def get(self, request, pk):
         amenity = self.get_object(pk)
@@ -46,12 +46,12 @@ class AmenityDetail(APIView):
 
     def put(self, request, pk):
         amenity = self.get_object(pk)
-        serializer = AmenitySerializer(amenity, data=request.data, partial=True)
+        serializer = AmenitySerializer(amenity, data=request.data, partial=True) # partial=True를 설정하면, 일부 필드만 업데이트 가능. 즉, 요청 데이터에 포함되지 않은 필드는 기존 값 유지
         if serializer.is_valid():
-            updated_amenity = serializer.save()
+            updated_amenity = serializer.save() 
             return Response(AmenitySerializer(updated_amenity).data)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         amenity = self.get_object(pk)
@@ -91,7 +91,7 @@ class Rooms(APIView):
             except Exception:
                 raise ParseError("Amenity not found.")
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 class RoomDetail(APIView):
 

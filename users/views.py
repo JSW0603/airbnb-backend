@@ -63,7 +63,7 @@ class ChangePassword(APIView):
         old_password = request.data.get("old_password")
         new_password = request.data.get("new_password")
         if not old_password or not new_password:
-            return ParseError
+            return ParseError("Old password and new password are required.")
         if user.check_password(old_password):
             user.set_password(new_password)
             user.save()
