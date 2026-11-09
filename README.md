@@ -9,6 +9,7 @@ REST API backend for an Airbnb-style accommodation platform, built with Django a
 - **Django REST Framework** 3.17 (class-based `APIView`s)
 - **Poetry** for dependency management
 - **SQLite** (dev) — PostgreSQL planned
+- *React* (Vite) + *Chakra UI* + *React Query* — frontend in progress
 
 ## Features
 
@@ -89,6 +90,7 @@ poetry run pytest experiences/ -v
 - [ ] JWT authentication with djangorestframework-simplejwt
 - [ ] PostgreSQL + Docker setup
 - [ ] API documentation (drf-spectacular)
+- [ ] React frontend (login + experience listings)
 
 ## License
 
